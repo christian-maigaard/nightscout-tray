@@ -134,9 +134,9 @@ const handleGlucoseUpdate = async (
   const directionEmojoi =
     direction === 'Flat' ? '→'.codePointAt(0)?.toString() : direction;
 
-  await doImageStuff(
-    `${glucoseMmol.toString()} ${direction} ${differenceString}`
-  );
+  // await doImageStuff(
+  //   `${glucoseMmol.toString()} ${differenceString}`
+  // );
 
   // const image = await Jimp.read(getAssetPath('icons/blank.png'));
 
@@ -150,11 +150,10 @@ const handleGlucoseUpdate = async (
 
   // image.write(getAssetPath('icons/blank_text.png'));
 
-  tray?.setImage(getAssetPath('icons/blank_exported.png'));
-
+  // tray?.setImage(getAssetPath('icons/blank_exported.png'));
   // updateTrayIcon(glucoseMmolNumber);
   // tray.setToolTip(glucoseMmolString);
-  // tray?.setTitle(`${glucoseMmol.toString()} ${direction} ${differenceString}`); // macOS specific
+  tray?.setTitle(`${glucoseMmol.toString()} ${``} ${differenceString}`); // macOS specific
 };
 
 const fetchCurrentGlucose = async () => {
@@ -212,7 +211,7 @@ const start = async () => {
     resizable: false,
   };
 
-  const T = new TrayGenerator(getAssetPath('icons/loading.png'));
+  const T = new TrayGenerator(getAssetPath('icons/tray_icon.png'));
   tray = T.createTray();
 
   const mb = menubar({
@@ -225,6 +224,9 @@ const start = async () => {
   mb.on('ready', () => {
     mb.app.dock.hide();
     updateGlucose();
+    mb.app.setLoginItemSettings({
+      openAtLogin: true,
+    });
 
     // fetch glucose
   });
