@@ -1,7 +1,7 @@
 {
-  "name": "Electron Glucose Tray ",
-  "productName": "Electron Glucose Tray",
-  "description": "Cross-platform application for monitoring glucose",
+  "name": "electron-glucose-tray",
+  "productName": "electron-glucose-tray",
+  "description": "Cross-platform glucse monitoring",
   "scripts": {
     "build": "concurrently \"yarn build:main\" \"yarn build:renderer\"",
     "build:main": "cross-env NODE_ENV=production webpack --config ./.erb/configs/webpack.config.main.prod.babel.js",
@@ -30,8 +30,8 @@
     ]
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "ElectronGlucoseTray",
+    "appId": "org.erb.ElectronGlucoseTray",
     "files": [
       "dist/",
       "node_modules/",

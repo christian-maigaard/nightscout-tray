@@ -134,7 +134,9 @@ const handleGlucoseUpdate = async (
   const directionEmojoi =
     direction === 'Flat' ? '→'.codePointAt(0)?.toString() : direction;
 
-  await doImageStuff(`${glucoseMmol.toString()} ${direction} ${differenceString}`);
+  await doImageStuff(
+    `${glucoseMmol.toString()} ${direction} ${differenceString}`
+  );
 
   // const image = await Jimp.read(getAssetPath('icons/blank.png'));
 
