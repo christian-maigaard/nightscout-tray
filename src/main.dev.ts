@@ -11,7 +11,7 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow, shell, Tray } from 'electron';
+import { app, BrowserWindow, Menu, shell, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { menubar } from 'menubar';
@@ -32,6 +32,11 @@ export default class AppUpdater {
 
 const mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let tray2: Tray | null = null;
+let tray3: Tray | null = null;
+let tray4: Tray | null = null;
+
+const isMac = process.platform === 'darwin';
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -66,32 +71,23 @@ const getAssetPath = (...paths: string[]): string => {
   return path.join(RESOURCES_PATH, ...paths);
 };
 
-const doImageStuff = (glucose: string) => {
-  const imgRaw = getAssetPath('icons/blank.png'); // a 1024px x 1024px backgroound image
-  const imgActive = getAssetPath('icons/blank_active.png'); // a 1024px x 1024px backgroound image
-  const imgExported = getAssetPath('icons/blank_exported.png');
+const doImageStuff = (glucose: string, exportImageName: string) => {
+  const imgExported = exportImageName;
 
   const textData = {
     text: glucose, // the text to be rendered on the image
-    maxWidth: 100, // image width - 10px margin left - 10px margin right
-    maxHeight: 20, // logo height + margin
-    placementX: 0, // 10px in on the x axis
-    placementY: 0, // bottom of the image: height - maxHeight - margin
+    maxWidth: 16,
+    maxHeight: 16,
+    placementX: 0,
+    placementY: 0,
   };
 
-  // read template & clone raw image
-  Jimp.read(imgRaw)
-    .then((tpl) => tpl.clone().write(imgActive))
+  const image = new Jimp(16, 16, 'white', (err) => {
+    if (err) console.log(err);
+  });
 
-    // read cloned (active) image
-    .then(() => Jimp.read(imgActive))
-
-    // load font
-    .then((tpl) =>
-      Jimp.loadFont(Jimp.FONT_SANS_16_BLACK).then((font) => [tpl, font])
-    )
-
-    // add footer text
+  Jimp.loadFont(Jimp.FONT_SANS_8_BLACK)
+    .then((font) => [image, font])
     .then((data) => {
       const tpl: any = data[0];
       const font: any = data[1];
@@ -109,15 +105,25 @@ const doImageStuff = (glucose: string) => {
         textData.maxHeight
       );
     })
-
-    // export image
-    .then((tpl: any) => tpl.write(imgExported))
-
-    // catch errors
+    .then((tpl: any) => tpl.quality(100).write(imgExported)) // catch errors
     .catch((err) => {
       console.error(err);
     });
 };
+
+const createWindowsTrayIcons = (
+  glucoseMmol: string,
+  differenceString: string
+) => {
+  doImageStuff(glucoseMmol, getAssetPath('icons/glucose.png'));
+
+  doImageStuff(differenceString, getAssetPath('icons/delta.png'));
+
+  tray2?.setImage(getAssetPath('icons/glucose.png'));
+  tray4?.setImage(getAssetPath('icons/delta.png'));
+  tray3?.setImage(getAssetPath('arrows/flat.png'));
+};
+
 const handleGlucoseUpdate = async (
   sgv: number,
   direction: string,
@@ -131,9 +137,9 @@ const handleGlucoseUpdate = async (
   const differenceOperator = difference >= 0 ? '+' : '';
   const differenceString = differenceOperator + differenceMmol.toString();
 
-  // await doImageStuff(
-  //   `${glucoseMmol.toString()} ${differenceString}`
-  // );
+  if (!isMac) createWindowsTrayIcons(glucoseMmol.toString(), differenceString);
+
+  
 
   // const image = await Jimp.read(getAssetPath('icons/blank.png'));
 
@@ -147,7 +153,6 @@ const handleGlucoseUpdate = async (
 
   // image.write(getAssetPath('icons/blank_text.png'));
 
-  // tray?.setImage(getAssetPath('icons/blank_exported.png'));
   // updateTrayIcon(glucoseMmolNumber);
   // tray.setToolTip(glucoseMmolString);
   tray?.setTitle(`${glucoseMmol.toString()} ${``} ${differenceString}`); // macOS specific
@@ -184,6 +189,19 @@ const updateGlucose = () => {
   setInterval(() => fetchGlucose(), 5000);
 };
 
+const rightClickMenu = () => {
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Quit',
+      accelerator: 'Command+Q',
+      click: () => {
+        app.quit();
+      },
+    },
+  ]);
+  tray?.popUpContextMenu(contextMenu);
+};
+
 const start = async () => {
   if (
     process.env.NODE_ENV === 'development' ||
@@ -205,8 +223,14 @@ const start = async () => {
     resizable: false,
   };
 
-  const T = new TrayGenerator(getAssetPath('icons/tray_icon.png'));
-  //const tray = T.createTray();
+  if (!isMac) {
+    const T = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
+    tray2 = T.createTray();
+    const T3 = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
+    tray3 = T3.createTray();
+    const T4 = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
+    tray4 = T4.createTray();
+  }
 
   const mb = menubar({
     index: `file://${__dirname}/index.html`,
@@ -215,10 +239,10 @@ const start = async () => {
     browserWindow: browserWindowOptions,
   });
 
-
   mb.on('ready', () => {
-    mb.app?.dock.hide(); // Hides dock on mac
+    mb.app?.dock?.hide(); // Hides dock on mac
     tray = mb.tray;
+    mb.tray.on('right-click', rightClickMenu);
     updateGlucose();
     mb.app.setLoginItemSettings({
       openAtLogin: true,
