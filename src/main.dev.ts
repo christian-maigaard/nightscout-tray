@@ -131,9 +131,6 @@ const handleGlucoseUpdate = async (
   const differenceOperator = difference >= 0 ? '+' : '';
   const differenceString = differenceOperator + differenceMmol.toString();
 
-  const directionEmojoi =
-    direction === 'Flat' ? '→'.codePointAt(0)?.toString() : direction;
-
   // await doImageStuff(
   //   `${glucoseMmol.toString()} ${differenceString}`
   // );
@@ -174,13 +171,10 @@ const fetchGlucose = () => {
       const firstEntry = entries[0];
       const secondEntry = entries[1];
       const { sgv, direction } = firstEntry;
-      let sgvDifference = difference(firstEntry.sgv, secondEntry.sgv);
-      sgvDifference =
-        firstEntry.sgv >= secondEntry.sgv
-          ? sgvDifference
-          : -Math.abs(sgvDifference);
-      handleGlucoseUpdate(sgv, direction, sgvDifference);
-      return sgv;
+      let delta = difference(firstEntry.sgv, secondEntry.sgv);
+      delta = firstEntry.sgv >= secondEntry.sgv ? delta : -Math.abs(delta);
+      handleGlucoseUpdate(sgv, direction, delta);
+      return { sgv, direction, delta };
     })
     .catch((error) => console.log(error));
 };
@@ -199,8 +193,8 @@ const start = async () => {
   }
 
   const browserWindowOptions = {
-    width: 400,
-    height: 300,
+    width: 600,
+    height: 450,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       nodeIntegration: true,
@@ -222,7 +216,7 @@ const start = async () => {
   });
 
   mb.on('ready', () => {
-    mb.app.dock.hide();
+    mb.app?.dock.hide(); // Hides dock on mac
     updateGlucose();
     mb.app.setLoginItemSettings({
       openAtLogin: true,
