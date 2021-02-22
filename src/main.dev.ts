@@ -206,17 +206,19 @@ const start = async () => {
   };
 
   const T = new TrayGenerator(getAssetPath('icons/tray_icon.png'));
-  tray = T.createTray();
+  //const tray = T.createTray();
 
   const mb = menubar({
     index: `file://${__dirname}/index.html`,
-    tray,
+    icon: getAssetPath('icons/tray_icon.png'),
     preloadWindow: true,
     browserWindow: browserWindowOptions,
   });
 
+
   mb.on('ready', () => {
     mb.app?.dock.hide(); // Hides dock on mac
+    tray = mb.tray;
     updateGlucose();
     mb.app.setLoginItemSettings({
       openAtLogin: true,
