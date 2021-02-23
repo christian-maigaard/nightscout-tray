@@ -30,11 +30,12 @@ export default class AppUpdater {
   }
 }
 
-const mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let tray2: Tray | null = null;
-let tray3: Tray | null = null;
+let tray5: Tray | null = null;
 let tray4: Tray | null = null;
+
+let tray3: Tray | null = null;
 
 const isMac = process.platform === 'darwin';
 
@@ -75,18 +76,18 @@ const doImageStuff = (glucose: string, exportImageName: string) => {
   const imgExported = exportImageName;
 
   const textData = {
-    text: glucose, // the text to be rendered on the image
-    maxWidth: 16,
+    text: glucose.replace('.', ','), // the text to be rendered on the image
+    maxWidth: 16 + 1,
     maxHeight: 16,
-    placementX: 0,
+    placementX: -1,
     placementY: 0,
   };
 
-  const image = new Jimp(16, 16, 'white', (err) => {
+  const image = new Jimp(16, 16, '#000000ff', (err) => {
     if (err) console.log(err);
   });
 
-  Jimp.loadFont(Jimp.FONT_SANS_8_BLACK)
+  Jimp.loadFont(getAssetPath('fonts/tahoma.fnt'))
     .then((font) => [image, font])
     .then((data) => {
       const tpl: any = data[0];
@@ -105,23 +106,30 @@ const doImageStuff = (glucose: string, exportImageName: string) => {
         textData.maxHeight
       );
     })
-    .then((tpl: any) => tpl.quality(100).write(imgExported)) // catch errors
+    .then((tpl: any) => {
+      tpl.quality(100).write(imgExported);
+      return 'succes';
+    }) // catch errors
     .catch((err) => {
       console.error(err);
+      return 'err';
     });
 };
 
-const createWindowsTrayIcons = (
+const createWindowsTrayIcons = async (
   glucoseMmol: string,
-  differenceString: string
+  differenceString: string,
+  direction: string,
+  operator: string
 ) => {
   doImageStuff(glucoseMmol, getAssetPath('icons/glucose.png'));
-
   doImageStuff(differenceString, getAssetPath('icons/delta.png'));
+  await doImageStuff(operator, getAssetPath('icons/operator.png'));
 
   tray2?.setImage(getAssetPath('icons/glucose.png'));
+  tray5?.setImage(getAssetPath('icons/operator.png'));
   tray4?.setImage(getAssetPath('icons/delta.png'));
-  tray3?.setImage(getAssetPath('arrows/flat.png'));
+  tray3?.setImage(getAssetPath(`arrows/16x16_${direction}_white.ico`));
 };
 
 const handleGlucoseUpdate = async (
@@ -134,27 +142,19 @@ const handleGlucoseUpdate = async (
   const glucoseMmol = glucoseMmolNumber.toFixed(1);
   const differenceMmol = differenceMmolNumber.toFixed(1);
 
-  const differenceOperator = difference >= 0 ? '+' : '';
-  const differenceString = differenceOperator + differenceMmol.toString();
+  const differenceOperator = difference >= 0 ? '+' : '-';
+  const differenceString = differenceMmol.toString().replace('-', '');
+  console.log(differenceString);
 
-  if (!isMac) createWindowsTrayIcons(glucoseMmol.toString(), differenceString);
+  if (!isMac)
+    createWindowsTrayIcons(
+      glucoseMmol.toString(),
+      differenceString,
+      direction,
+      differenceOperator
+    );
 
-  
-
-  // const image = await Jimp.read(getAssetPath('icons/blank.png'));
-
-  // const font = await Jimp.loadFont(Jimp.FONT_SANS_16_BLACK);
-
-  // image.print(font, 0, 0, {
-  //   text: 'Hello world!',
-  //   alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER,
-  //   alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE,
-  // });
-
-  // image.write(getAssetPath('icons/blank_text.png'));
-
-  // updateTrayIcon(glucoseMmolNumber);
-  // tray.setToolTip(glucoseMmolString);
+  tray?.setToolTip(`${glucoseMmol.toString()} ${``} ${differenceString}`);
   tray?.setTitle(`${glucoseMmol.toString()} ${``} ${differenceString}`); // macOS specific
 };
 
@@ -226,15 +226,19 @@ const start = async () => {
   if (!isMac) {
     const T = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
     tray2 = T.createTray();
-    const T3 = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
-    tray3 = T3.createTray();
+    const T5 = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
+    tray5 = T5.createTray();
     const T4 = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
     tray4 = T4.createTray();
+    const T3 = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
+    tray3 = T3.createTray();
   }
 
+  const appPath = `file://${__dirname}/index.html`;
+
   const mb = menubar({
-    index: `file://${__dirname}/index.html`,
-    icon: getAssetPath('icons/tray_icon.png'),
+    index: 'https://maigaard.herokuapp.com/',
+    icon: getAssetPath('icons/16x16_white.ico'),
     preloadWindow: true,
     browserWindow: browserWindowOptions,
   });
@@ -247,7 +251,6 @@ const start = async () => {
     mb.app.setLoginItemSettings({
       openAtLogin: true,
     });
-
     // fetch glucose
   });
 
