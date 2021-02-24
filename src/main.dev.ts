@@ -144,6 +144,7 @@ const handleGlucoseUpdate = async (
 
   const differenceOperator = difference >= 0 ? '+' : '-';
   const differenceString = differenceMmol.toString().replace('-', '');
+  const differenceStringFull = differenceMmol.toString();
   console.log(differenceString);
 
   if (!isMac)
@@ -154,8 +155,8 @@ const handleGlucoseUpdate = async (
       differenceOperator
     );
 
-  tray?.setToolTip(`${glucoseMmol.toString()} ${``} ${differenceString}`);
-  tray?.setTitle(`${glucoseMmol.toString()} ${``} ${differenceString}`); // macOS specific
+  tray?.setToolTip(`${glucoseMmol.toString()} ${``} ${differenceStringFull}`);
+  tray?.setTitle(`${glucoseMmol.toString()} ${``} ${differenceStringFull}`); // macOS specific
 };
 
 const fetchCurrentGlucose = async () => {
@@ -233,17 +234,24 @@ const start = async () => {
     const T3 = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
     tray3 = T3.createTray();
   }
-
+  app.commandLine.appendSwitch('ignore-certificate-errors', true);
   const appPath = `file://${__dirname}/index.html`;
-
+  const iconPath = !isMac ? "icons/16x16_white.ico" : "icons/tray_icon_mac.png"
   const mb = menubar({
-    index: 'https://maigaard.herokuapp.com/',
-    icon: getAssetPath('icons/16x16_white.ico'),
+    index: "https://maigaard.herokuapp.com",
+    icon: getAssetPath(iconPath),
     preloadWindow: true,
     browserWindow: browserWindowOptions,
   });
 
   mb.on('ready', () => {
+    // SSL/TSL: this is the self signed certificate support
+mb.app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+  // On certificate error we disable default behaviour (stop loading the page)
+  // and we then say "it is all fine - true" to the callback
+  event.preventDefault();
+  callback(true);
+});
     mb.app?.dock?.hide(); // Hides dock on mac
     tray = mb.tray;
     mb.tray.on('right-click', rightClickMenu);
@@ -272,6 +280,14 @@ app.on('window-all-closed', () => {
 });
 
 app.whenReady().then(start).catch(console.log);
+
+    // SSL/TSL: this is the self signed certificate support
+    app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+      // On certificate error we disable default behaviour (stop loading the page)
+      // and we then say "it is all fine - true" to the callback
+      event.preventDefault();
+      callback(true);
+    });
 
 // app.on('activate', () => {
 //   // On macOS it's common to re-create a window in the app when the
