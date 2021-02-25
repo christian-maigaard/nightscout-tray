@@ -1,9 +1,9 @@
 {
-  "name": "electron-glucose-tray",
-  "productName": "electron-glucose-tray",
-  "description": "Cross-platform glucse monitoring",
+  "name": "nightscout-menu-bar",
+  "productName": "nightscout-menu-bar",
+  "description": "cross-platform glucse monitoring",
+  "version": "1.0.0",
   "license": "MIT",
-  "private": true,
   "scripts": {
     "build": "concurrently \"yarn build:main\" \"yarn build:renderer\"",
     "build:main": "cross-env NODE_ENV=production webpack --config ./.erb/configs/webpack.config.main.prod.babel.js",
@@ -32,8 +32,8 @@
     ]
   },
   "build": {
-    "productName": "ElectronGlucoseTray",
-    "appId": "org.erb.ElectronGlucoseTray",
+    "productName": "NightscoutMenuBar",
+    "appId": "org.erb.NightscoutMenuBar",
     "files": [
       "dist/",
       "node_modules/",
@@ -88,46 +88,19 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
+      "owner": "nightscout-menu-bar",
+      "repo": "nightscout-menu-bar"
     }
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
+    "url": "git+https://github.com/christian-maigaard/nightscout-menu-bar.git"
   },
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://electron-react-boilerplate.js.org"
+    "name": "Christian Maigaard Christensen",
+    "email": "maigaard.christian@gmail.com"
   },
-  "contributors": [
-    {
-      "name": "Amila Welihinda",
-      "email": "amilajack@gmail.com",
-      "url": "https://github.com/amilajack"
-    },
-    {
-      "name": "John Tran",
-      "email": "jptran318@gmail.com",
-      "url": "https://github.com/jooohhn"
-    }
-  ],
-  "bugs": {
-    "url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
-  },
-  "keywords": [
-    "electron",
-    "boilerplate",
-    "react",
-    "typescript",
-    "ts",
-    "sass",
-    "webpack",
-    "hot",
-    "reload"
-  ],
-  "homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
+  "homepage": "https://github.com/christian-maigaard/nightscout-menu-bar/blob/master/README.md",
   "jest": {
     "testURL": "http://localhost/",
     "moduleNameMapper": {
@@ -266,9 +239,6 @@
     "node": ">=10.x",
     "npm": ">=6.x",
     "yarn": ">=1.21.3"
-  },
-  "collective": {
-    "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
   "browserslist": [],
   "prettier": {

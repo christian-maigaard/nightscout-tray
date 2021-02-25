@@ -20,7 +20,7 @@ import fetch from 'node-fetch';
 import Jimp from 'jimp';
 import MenuBuilder from './menu';
 import TrayGenerator from './TrayGenerator';
-import { Entry, NSdisplayData, Properties } from './nsAPI';
+import { Entry, NSdisplayData, Properties } from './types';
 
 export default class AppUpdater {
   constructor() {
@@ -131,12 +131,12 @@ const createWindowsTrayIcons = async (
   tray3?.setImage(getAssetPath(`arrows/16x16_${direction}_white.ico`));
 };
 
-const handleGlucoseUpdate = async (
-  nsDisplayData: NSdisplayData
-) => {
+const handleGlucoseUpdate = async (nsDisplayData: NSdisplayData) => {
   const operator = nsDisplayData.deltaDisplay.charAt(0);
   // remove math operators from text, since this cant be displayed properly on windows tray icons
-  const desltaDisplayWindows = nsDisplayData.deltaDisplay.replace("-", "").replace("+","");
+  const desltaDisplayWindows = nsDisplayData.deltaDisplay
+    .replace('-', '')
+    .replace('+', '');
 
   if (!isMac)
     createWindowsTrayIcons(
@@ -161,19 +161,19 @@ const fetchGlucose = async () => {
 const handleGlucose = (properties: Properties) => {
   if (!properties) return;
   const nsGlucoseData: NSdisplayData = {
-    sgv: properties.bgnow.sgvs[0].scaled,
+    sgv: properties.bgnow.sgvs[0].scaled ?? '',
     deltaDisplay: properties.delta.display,
     directionArrow: properties.direction.label,
-    direction: properties.direction.value
-  }
+    direction: properties.direction.value,
+  };
   handleGlucoseUpdate(nsGlucoseData);
-}
+};
 
 const updateGlucose = () => {
-  fetchGlucose().then(r => handleGlucose(r));
+  fetchGlucose().then((r) => handleGlucose(r));
   setInterval(() => {
-    fetchGlucose().then(r => handleGlucose(r));
-  }, 5000);
+    fetchGlucose().then((r) => handleGlucose(r));
+  }, 10000);
 };
 
 const rightClickMenu = () => {
@@ -221,8 +221,8 @@ const start = async () => {
     tray3 = T3.createTray();
   }
   app.commandLine.appendSwitch('ignore-certificate-errors', true);
-  const appPath = "https://maigaard.herokuapp.com";
-  const iconPath = !isMac ? "icons/16x16_white.ico" : "icons/tray_icon_mac.png"
+  const appPath = 'https://maigaard.herokuapp.com';
+  const iconPath = !isMac ? 'icons/16x16_white.ico' : 'icons/tray_icon_mac.png';
   const mb = menubar({
     index: appPath,
     icon: getAssetPath(iconPath),
@@ -232,12 +232,15 @@ const start = async () => {
 
   mb.on('ready', () => {
     // SSL/TSL: this is the self signed certificate support
-mb.app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
-  // On certificate error we disable default behaviour (stop loading the page)
-  // and we then say "it is all fine - true" to the callback
-  event.preventDefault();
-  callback(true);
-});
+    mb.app.on(
+      'certificate-error',
+      (event, webContents, url, error, certificate, callback) => {
+        // On certificate error we disable default behaviour (stop loading the page)
+        // and we then say "it is all fine - true" to the callback
+        event.preventDefault();
+        callback(true);
+      }
+    );
     mb.app?.dock?.hide(); // Hides dock on mac
     tray = mb.tray;
     mb.tray.on('right-click', rightClickMenu);
@@ -267,13 +270,16 @@ app.on('window-all-closed', () => {
 
 app.whenReady().then(start).catch(console.log);
 
-    // SSL/TSL: this is the self signed certificate support
-    app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
-      // On certificate error we disable default behaviour (stop loading the page)
-      // and we then say "it is all fine - true" to the callback
-      event.preventDefault();
-      callback(true);
-    });
+// SSL/TSL: this is the self signed certificate support
+app.on(
+  'certificate-error',
+  (event, webContents, url, error, certificate, callback) => {
+    // On certificate error we disable default behaviour (stop loading the page)
+    // and we then say "it is all fine - true" to the callback
+    event.preventDefault();
+    callback(true);
+  }
+);
 
 // app.on('activate', () => {
 //   // On macOS it's common to re-create a window in the app when the
