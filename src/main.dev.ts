@@ -25,6 +25,8 @@ let tray5: Tray | null = null;
 let tray4: Tray | null = null;
 let tray3: Tray | null = null;
 
+const nightscoutBaseURL = 'https://maigaard.herokuapp.com';
+
 const isMac = process.platform === 'darwin';
 
 if (process.env.NODE_ENV === 'production') {
@@ -141,7 +143,7 @@ const handleGlucoseUpdate = async (nsDisplayData: NSdisplayData) => {
 };
 
 const fetchGlucose = async () => {
-  return fetch('https://maigaard.herokuapp.com/api/v2/properties')
+  return fetch(`${nightscoutBaseURL}/api/v2/properties`)
     .then((response: any) => response.json())
     .then((result: any) => result)
     .catch((error: any) => console.log(error));
@@ -209,10 +211,9 @@ const start = async () => {
     const T3 = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
     tray3 = T3.createTray();
   }
-  const appPath = 'https://maigaard.herokuapp.com';
   const iconPath = !isMac ? 'icons/16x16_white.ico' : 'icons/tray_icon_mac.png';
   const mb = menubar({
-    index: appPath,
+    index: nightscoutBaseURL,
     icon: getAssetPath(iconPath),
     preloadWindow: true,
     browserWindow: browserWindowOptions,
@@ -236,17 +237,12 @@ const start = async () => {
     mb.app.setLoginItemSettings({
       openAtLogin: true,
     });
-    // fetch glucose
   });
 
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
 };
-
-/**
- * Add event listeners...
- */
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
@@ -268,9 +264,3 @@ app.on(
     callback(true);
   }
 );
-
-// app.on('activate', () => {
-//   // On macOS it's common to re-create a window in the app when the
-//   // dock icon is clicked and there are no other windows open.
-//   if (mainWindow === null) createWindow();
-// });
