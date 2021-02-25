@@ -57,6 +57,8 @@
     }
 
     export interface Direction {
+      label: string,
+      value: string
     }
 
     export interface Upbat {
@@ -88,6 +90,13 @@
         pump: Pump;
         loop: Loop;
         basal: Basal;
+    }
+
+    export interface NSdisplayData {
+      sgv: string;
+      deltaDisplay: string;
+      directionArrow: string;
+      direction: string;
     }
 
 }

@@ -20,7 +20,7 @@ import fetch from 'node-fetch';
 import Jimp from 'jimp';
 import MenuBuilder from './menu';
 import TrayGenerator from './TrayGenerator';
-import { Entry } from './nsAPI';
+import { Entry, NSdisplayData, Properties } from './nsAPI';
 
 export default class AppUpdater {
   constructor() {
@@ -34,7 +34,6 @@ let tray: Tray | null = null;
 let tray2: Tray | null = null;
 let tray5: Tray | null = null;
 let tray4: Tray | null = null;
-
 let tray3: Tray | null = null;
 
 const isMac = process.platform === 'darwin';
@@ -133,61 +132,48 @@ const createWindowsTrayIcons = async (
 };
 
 const handleGlucoseUpdate = async (
-  sgv: number,
-  direction: string,
-  difference: number
+  nsDisplayData: NSdisplayData
 ) => {
-  const glucoseMmolNumber = sgv / 18;
-  const differenceMmolNumber = difference / 18;
-  const glucoseMmol = glucoseMmolNumber.toFixed(1);
-  const differenceMmol = differenceMmolNumber.toFixed(1);
-
-  const differenceOperator = difference >= 0 ? '+' : '-';
-  const differenceString = differenceMmol.toString().replace('-', '');
-  const differenceStringFull = differenceMmol.toString();
-  console.log(differenceString);
+  const operator = nsDisplayData.deltaDisplay.charAt(0);
+  // remove math operators from text, since this cant be displayed properly on windows tray icons
+  const desltaDisplayWindows = nsDisplayData.deltaDisplay.replace("-", "").replace("+","");
 
   if (!isMac)
     createWindowsTrayIcons(
-      glucoseMmol.toString(),
-      differenceString,
-      direction,
-      differenceOperator
+      nsDisplayData.sgv,
+      desltaDisplayWindows,
+      nsDisplayData.direction,
+      operator
     );
 
-  tray?.setToolTip(`${glucoseMmol.toString()} ${``} ${differenceStringFull}`);
-  tray?.setTitle(`${glucoseMmol.toString()} ${``} ${differenceStringFull}`); // macOS specific
+  const displayTitle = ` ${nsDisplayData.sgv} ${nsDisplayData.deltaDisplay} ${nsDisplayData.directionArrow}`;
+  tray?.setToolTip(displayTitle);
+  tray?.setTitle(displayTitle); // macOS specific
 };
 
-const fetchCurrentGlucose = async () => {
-  return fetch('https://maigaard.herokuapp.com/api/v1/entries/sgv.json')
+const fetchGlucose = async () => {
+  return fetch('https://maigaard.herokuapp.com/api/v2/properties')
     .then((response: any) => response.json())
     .then((result: any) => result)
     .catch((error: any) => console.log(error));
 };
 
-const difference = function (a, b) {
-  return Math.abs(a - b);
-};
-
-const fetchGlucose = () => {
-  return fetchCurrentGlucose()
-    .then((entries: Entry[]) => {
-      if (!entries) return;
-      const firstEntry = entries[0];
-      const secondEntry = entries[1];
-      const { sgv, direction } = firstEntry;
-      let delta = difference(firstEntry.sgv, secondEntry.sgv);
-      delta = firstEntry.sgv >= secondEntry.sgv ? delta : -Math.abs(delta);
-      handleGlucoseUpdate(sgv, direction, delta);
-      return { sgv, direction, delta };
-    })
-    .catch((error) => console.log(error));
-};
+const handleGlucose = (properties: Properties) => {
+  if (!properties) return;
+  const nsGlucoseData: NSdisplayData = {
+    sgv: properties.bgnow.sgvs[0].scaled,
+    deltaDisplay: properties.delta.display,
+    directionArrow: properties.direction.label,
+    direction: properties.direction.value
+  }
+  handleGlucoseUpdate(nsGlucoseData);
+}
 
 const updateGlucose = () => {
-  fetchGlucose();
-  setInterval(() => fetchGlucose(), 5000);
+  fetchGlucose().then(r => handleGlucose(r));
+  setInterval(() => {
+    fetchGlucose().then(r => handleGlucose(r));
+  }, 5000);
 };
 
 const rightClickMenu = () => {
@@ -235,10 +221,10 @@ const start = async () => {
     tray3 = T3.createTray();
   }
   app.commandLine.appendSwitch('ignore-certificate-errors', true);
-  const appPath = `file://${__dirname}/index.html`;
+  const appPath = "https://maigaard.herokuapp.com";
   const iconPath = !isMac ? "icons/16x16_white.ico" : "icons/tray_icon_mac.png"
   const mb = menubar({
-    index: "https://maigaard.herokuapp.com",
+    index: appPath,
     icon: getAssetPath(iconPath),
     preloadWindow: true,
     browserWindow: browserWindowOptions,
