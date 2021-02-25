@@ -1,26 +1,15 @@
-/* eslint global-require: off, no-console: off */
-
-/**
- * This module executes inside of electron's main process. You can start
- * electron renderer process from here and communicate with the other processes
- * through IPC.
- *
- * When running `yarn build` or `yarn build-main`, this file is compiled to
- * `./src/main.prod.js` using webpack. This gives us some performance wins.
- */
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow, Menu, shell, Tray } from 'electron';
+import { app, Menu, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { menubar } from 'menubar';
 
 import fetch from 'node-fetch';
 import Jimp from 'jimp';
-import MenuBuilder from './menu';
 import TrayGenerator from './TrayGenerator';
-import { Entry, NSdisplayData, Properties } from './types';
+import { NSdisplayData, Properties } from './types';
 
 export default class AppUpdater {
   constructor() {
@@ -147,7 +136,7 @@ const handleGlucoseUpdate = async (nsDisplayData: NSdisplayData) => {
     );
 
   const displayTitle = ` ${nsDisplayData.sgv} ${nsDisplayData.deltaDisplay} ${nsDisplayData.directionArrow}`;
-  tray?.setToolTip(displayTitle);
+  tray?.setToolTip(displayTitle); // Windows specific
   tray?.setTitle(displayTitle); // macOS specific
 };
 
@@ -220,7 +209,6 @@ const start = async () => {
     const T3 = new TrayGenerator(getAssetPath('icons/blank_tray_icon.png'));
     tray3 = T3.createTray();
   }
-  app.commandLine.appendSwitch('ignore-certificate-errors', true);
   const appPath = 'https://maigaard.herokuapp.com';
   const iconPath = !isMac ? 'icons/16x16_white.ico' : 'icons/tray_icon_mac.png';
   const mb = menubar({
