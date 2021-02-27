@@ -2,7 +2,7 @@
   "name": "nightscout-tray",
   "productName": "nightscout-tray",
   "description": "cross-platform glucse monitoring",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "license": "GNU",
   "scripts": {
     "build": "concurrently \"yarn build:main\" \"yarn build:renderer\"",
