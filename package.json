@@ -1,9 +1,9 @@
 {
-  "name": "nightscout-menu-bar",
-  "productName": "nightscout-menu-bar",
+  "name": "nightscout-tray",
+  "productName": "nightscout-tray",
   "description": "cross-platform glucse monitoring",
   "version": "1.0.0",
-  "license": "MIT",
+  "license": "GNU",
   "scripts": {
     "build": "concurrently \"yarn build:main\" \"yarn build:renderer\"",
     "build:main": "cross-env NODE_ENV=production webpack --config ./.erb/configs/webpack.config.main.prod.babel.js",
@@ -32,8 +32,8 @@
     ]
   },
   "build": {
-    "productName": "NightscoutMenuBar",
-    "appId": "org.erb.NightscoutMenuBar",
+    "productName": "Nightscout Tray",
+    "appId": "org.erb.NightscoutTray",
     "files": [
       "dist/",
       "node_modules/",
@@ -88,19 +88,19 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "nightscout-menu-bar",
-      "repo": "nightscout-menu-bar"
+      "owner": "nightscout-tray",
+      "repo": "nightscout-tray"
     }
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/christian-maigaard/nightscout-menu-bar.git"
+    "url": "git+https://github.com/christian-maigaard/nightscout-tray.git"
   },
   "author": {
     "name": "Christian Maigaard Christensen",
     "email": "maigaard.christian@gmail.com"
   },
-  "homepage": "https://github.com/christian-maigaard/nightscout-menu-bar/blob/master/README.md",
+  "homepage": "https://github.com/christian-maigaard/nightscout-tray/blob/master/README.md",
   "jest": {
     "testURL": "http://localhost/",
     "moduleNameMapper": {

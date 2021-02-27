@@ -5,7 +5,6 @@ import { app, Menu, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { menubar } from 'menubar';
-
 import fetch from 'node-fetch';
 import Jimp from 'jimp';
 import TrayGenerator from './TrayGenerator';
