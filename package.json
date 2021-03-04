@@ -3,7 +3,7 @@
   "productName": "nightscout-tray",
   "description": "cross-platform glucse monitoring",
   "version": "0.1.0",
-  "license": "GNU",
+  "license": "GPL-2.0-or-later",
   "scripts": {
     "build": "concurrently \"yarn build:main\" \"yarn build:renderer\"",
     "build:main": "cross-env NODE_ENV=production webpack --config ./.erb/configs/webpack.config.main.prod.babel.js",
