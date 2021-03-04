@@ -149,7 +149,7 @@ const fetchGlucose = async () => {
 };
 
 const handleGlucose = (properties: Properties) => {
-  if (!properties) return;
+  if (!properties || !properties.bgnow.sgvs[0].scaled) return;
   const nsGlucoseData: NSdisplayData = {
     sgv: properties.bgnow.sgvs[0].scaled ?? '',
     deltaDisplay: properties.delta.display,
