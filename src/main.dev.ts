@@ -1,7 +1,7 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, Menu, Tray } from 'electron';
+import { app, Menu, Tray, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { menubar } from 'menubar';
@@ -9,7 +9,6 @@ import fetch from 'node-fetch';
 import Jimp from 'jimp';
 import TrayGenerator from './TrayGenerator';
 import { NSdisplayData, Properties } from './types';
-
 export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -24,7 +23,7 @@ let tray5: Tray | null = null;
 let tray4: Tray | null = null;
 let tray3: Tray | null = null;
 
-const nightscoutBaseURL = 'https://maigaard.herokuapp.com';
+let nightscoutBaseURL = 'https://maigaard.herokuapp.com';
 
 const isMac = process.platform === 'darwin';
 
@@ -211,15 +210,16 @@ const start = async () => {
     tray3 = T3.createTray();
   }
   const iconPath = !isMac ? 'icons/16x16_white.ico' : 'icons/tray_icon_mac.png';
+  const reactAppPath = `file://${__dirname}/index.html`;
   const mb = menubar({
-    index: nightscoutBaseURL,
+    index: reactAppPath,
     icon: getAssetPath(iconPath),
     preloadWindow: true,
     browserWindow: browserWindowOptions,
   });
 
   mb.on('ready', () => {
-    mb.window?.webContents.setAudioMuted(true)
+    mb.window?.webContents.setAudioMuted(true);
 
     // SSL/TSL: this is the self signed certificate support
     mb.app.on(
@@ -255,3 +255,7 @@ app.on('window-all-closed', () => {
 
 app.whenReady().then(start).catch(console.log);
 
+ipcMain.handle('settings-save', (event, ...args) => {
+  const settings = args[0];
+  nightscoutBaseURL = settings.nightscoutUrl;
+});
